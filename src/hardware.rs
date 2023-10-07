@@ -146,6 +146,13 @@ impl CPU {
         self.accumulator = value;
     }
 
+    // Implement the ADC instruction
+    fn adc(&mut self, mode: &AddressingMode) {
+        let address = self.address_operand(&mode);
+        let value = self.mem_read(address);
+        self.accumulator += value + self.flag_value(0) + value;
+    }
+
     // Update CPU status flags
     fn update_flags(&mut self, to_check: u8) {
         if to_check == 0 {
@@ -158,6 +165,30 @@ impl CPU {
             self.status = self.status | 0b10000000; // Set negative flag
         } else {
             self.status = self.status & 0b01111111; // Clear negative flag
+        }
+    }
+
+    // Get value stored at any of the flags
+    // bit 0 : C -> Carry Flag
+    // bit 1 : Z -> Zero Flag
+    // bit 2 : I -> Interrupt Disable
+    // bit 3 : D -> Decimal Mode -> used in 6502 not supported by 2A03
+    // bit 4 : B -> Break Command
+    // bit 5 : X -> Unused -> could be used by unofficial instructions
+    // bit 6 : V -> Overflow Flag 
+    // bit 7 : N -> Negative Flag
+    fn flag_value(&mut self, bit : u8) -> u8 {
+        
+        match bit {
+            0 => (((1 << 1) - 1) & (self.status >> (0))) as u8,
+            1 => (((1 << 1) - 1) & (self.status >> (1))) as u8,
+            2 => (((1 << 1) - 1) & (self.status >> (2))) as u8,
+            3 => (((1 << 1) - 1) & (self.status >> (3))) as u8,
+            4 => (((1 << 1) - 1) & (self.status >> (4))) as u8,
+            5 => (((1 << 1) - 1) & (self.status >> (5))) as u8,
+            6 => (((1 << 1) - 1) & (self.status >> (6))) as u8,
+            7 => (((1 << 1) - 1) & (self.status >> (7))) as u8,
+            _ => panic!("bit value at position not existing in status flag requested"),
         }
     }
 
@@ -200,6 +231,40 @@ impl CPU {
                 }
                 0xb1 => {
                     self.lda(&AddressingMode::IndirectY);
+                    self.program_counter += 1;
+                }
+
+                //ADC instructions
+                0x69 => {
+                    self.adc(&AddressingMode::Immediate);
+                    self.program_counter += 1;
+                }
+                0x65 => {
+                    self.adc(&AddressingMode::ZeroPage);
+                    self.program_counter += 1;
+                }
+                0x75 => {
+                    self.adc(&AddressingMode::ZeroPageX);
+                    self.program_counter += 2;
+                }
+                0x6D => {
+                    self.adc(&AddressingMode::Absolute);
+                    self.program_counter += 2;
+                }
+                0x7D => {
+                    self.adc(&AddressingMode::AbsoluteX);
+                    self.program_counter += 2;
+                }
+                0x79 => {
+                    self.adc(&AddressingMode::AbsoluteY);
+                    self.program_counter += 2;
+                }
+                0x61 => {
+                    self.adc(&AddressingMode::IndirectX);
+                    self.program_counter += 1;
+                }
+                0x71 => {
+                    self.adc(&AddressingMode::IndirectY);
                     self.program_counter += 1;
                 }
                 0x00 => return, // Exit the interpreter loop
