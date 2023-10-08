@@ -159,34 +159,9 @@ impl CPU {
 
      
 
-    fn change_flag_status(&mut self, flag : &Flags, set_reset : u8) {
-        if set_reset == 1 {
-            match flag {
-                Flags::Carry => self.status | 0b00000001,
-                Flags::Zero => self.status | 0b00000010,
-                Flags::InterruptDisable => self.status | 0b00000100,
-                Flags::DecimalMode => self.status | 0b00001000,
-                Flags::BreakCommand => self.status | 0b00010000,
-                Flags::Overflow => self.status | 0b0100_0000,
-                Flags::Negative => self.status | 0b1000_0000, 
-            };
-        }
-        else if set_reset == 0  {
-            match flag {
-                Flags::Carry => self.status & 0b1111_1110,
-                Flags::Zero => self.status & 0b1111_1101,
-                Flags::InterruptDisable => self.status & 0b1111_1011,
-                Flags::DecimalMode => self.status & 0b1111_0111,
-                Flags::BreakCommand => self.status & 0b1110_1111,
-                Flags::Overflow => self.status & 0b1011_1111,
-                Flags::Negative => self.status & 0b0111_1111,
-            };
-        }
-        else {
-            panic!("Invalid set/reset instruction received");
-        }
+    
         
-    }
+    
 
     // Get value stored at any of the flags
     // bit 0 : C -> Carry Flag
@@ -209,6 +184,21 @@ impl CPU {
             Flags::Overflow => (((1 << 1) - 1) & (self.status >> (6))) as u8,
             Flags::Negative => (((1 << 1) - 1) & (self.status >> (7))) as u8,
             
+        }
+    }
+
+    // Update CPU status flags
+    fn update_flags(&mut self, to_check: u8) {
+        if to_check == 0 {
+            self.status = self.status | 0b00000010; // Set zero flag
+        } else {
+            self.status = self.status & 0b11111101; // Clear zero flag
+        }
+
+        if to_check & 0b10000000 == 0b10000000 {
+            self.status = self.status | 0b10000000; // Set negative flag
+        } else {
+            self.status = self.status & 0b01111111; // Clear negative flag
         }
     }
 
