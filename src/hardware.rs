@@ -30,6 +30,17 @@ pub enum AddressingMode {
     NoneAddressing,
 }
 
+// Enum to represent flags
+pub enum Flags {
+    Carry,
+    Zero,
+    InterruptDisable,
+    DecimalMode,
+    BreakCommand,
+    Overflow,
+    Negative,
+}
+
 impl CPU {
     // Constructor to create a new CPU instance
     pub fn new() -> Self {
@@ -146,6 +157,36 @@ impl CPU {
         self.accumulator = value;
     }
 
+     
+
+    
+        
+    
+
+    // Get value stored at any of the flags
+    // bit 0 : C -> Carry Flag
+    // bit 1 : Z -> Zero Flag
+    // bit 2 : I -> Interrupt Disable
+    // bit 3 : D -> Decimal Mode -> used in 6502 not supported by 2A03
+    // bit 4 : B -> Break Command
+    // bit 5 : X -> Unused -> could be used by unofficial instructions
+    // bit 6 : V -> Overflow Flag 
+    // bit 7 : N -> Negative Flag
+    fn get_flag_value(&mut self, flag : &Flags) -> u8 {
+        
+        match flag {
+            Flags::Carry => (((1 << 1) - 1) & (self.status >> (0))) as u8,
+            Flags::Zero => (((1 << 1) - 1) & (self.status >> (1))) as u8,
+            Flags::InterruptDisable => (((1 << 1) - 1) & (self.status >> (2))) as u8,
+            Flags::DecimalMode => (((1 << 1) - 1) & (self.status >> (3))) as u8,
+            Flags::BreakCommand => (((1 << 1) - 1) & (self.status >> (4))) as u8,
+            
+            Flags::Overflow => (((1 << 1) - 1) & (self.status >> (6))) as u8,
+            Flags::Negative => (((1 << 1) - 1) & (self.status >> (7))) as u8,
+            
+        }
+    }
+
     // Update CPU status flags
     fn update_flags(&mut self, to_check: u8) {
         if to_check == 0 {
@@ -202,6 +243,8 @@ impl CPU {
                     self.lda(&AddressingMode::IndirectY);
                     self.program_counter += 1;
                 }
+
+                
                 0x00 => return, // Exit the interpreter loop
 
                 _ => todo!("write more functions for opcodes"),
@@ -224,4 +267,6 @@ mod test {
         assert!(cpu.status & 0b0000_0010 == 0b00); // Check if zero flag is not set
         assert!(cpu.status & 0b1000_0000 == 0); // Check if negative flag is not set
     }
+
+
 }
