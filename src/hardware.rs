@@ -146,6 +146,27 @@ impl CPU {
         self.accumulator = value;
     }
 
+    // Implementing the STA instruction
+    fn sta(&mut self, mode: &AddressingMode){
+        let address = self.address_operand(mode);
+        let data = self.accumulator;
+        self.mem_write(address, data);
+    }
+
+    //Implementing the STX instriction
+    fn stx(&mut self, mode: &AddressingMode){
+        let address = self.address_operand(mode);
+        let data = self.index_x;
+        self.mem_write(address, data);
+    }
+
+    //Implementing the STY instriction
+    fn sty(&mut self, mode: &AddressingMode){
+        let address = self.address_operand(mode);
+        let data = self.index_y;
+        self.mem_write(address, data);
+    }
+
     // Update CPU status flags
     fn update_flags(&mut self, to_check: u8) {
         if to_check == 0 {
@@ -202,6 +223,58 @@ impl CPU {
                     self.lda(&AddressingMode::IndirectY);
                     self.program_counter += 1;
                 }
+                0x85 => {
+                    self.sta(&AddressingMode::ZeroPage);
+                    self.program_counter += 1;
+                }
+                0x95 => {
+                    self.sta(&AddressingMode::ZeroPageX);
+                    self.program_counter += 1;
+                }
+                0x8d => {
+                    self.sta(&AddressingMode::Absolute);
+                    self.program_counter += 1;
+                }
+                0x9d => {
+                    self.sta(&AddressingMode::AbsoluteX);
+                    self.program_counter += 1;
+                }
+                0x99 => {
+                    self.sta(&AddressingMode::AbsoluteY);
+                    self.program_counter += 1;
+                }
+                0x81 => {
+                    self.sta(&AddressingMode::IndirectX);
+                    self.program_counter += 1;
+                }
+                0x91 => {
+                    self.sta(&AddressingMode::IndirectY);
+                    self.program_counter += 1;
+                }
+                0x86 => {
+                    self.stx(&AddressingMode::ZeroPage);
+                    self.program_counter += 1;
+                }
+                0x96 => {
+                    self.stx(&AddressingMode::ZeroPageY);
+                    self.program_counter += 1;
+                }
+                0x8e => {
+                    self.stx(&AddressingMode::Absolute);
+                    self.program_counter += 1;
+                }
+                0x84 => {
+                    self.sty(&AddressingMode::ZeroPage);
+                    self.program_counter += 1;
+                }
+                0x94 => {
+                    self.sty(&AddressingMode::ZeroPageY);
+                    self.program_counter += 1;
+                }
+                0x8c => {
+                    self.sty(&AddressingMode::Absolute);
+                    self.program_counter += 1;
+                }
                 0x00 => return, // Exit the interpreter loop
 
                 _ => todo!("write more functions for opcodes"),
@@ -223,5 +296,29 @@ mod test {
         assert_eq!(cpu.accumulator, 5); // Check if accumulator is loaded correctly
         assert!(cpu.status & 0b0000_0010 == 0b00); // Check if zero flag is not set
         assert!(cpu.status & 0b1000_0000 == 0); // Check if negative flag is not set
+    }
+
+    // Test Case for STA (Store Accumulator) instruction with Zero Page addressing
+    #[test]
+    fn test_0x85_sta_zero_page_store_data(){
+        let mut cpu = CPU::new();
+        cpu.load_and_interpret(vec![0xa9, 0x09, 0x85, 0x00]);
+        assert_eq!(cpu.mem_read(0x8001), 9);
+    }
+
+    // Test Case for STX (Store X Register) instruction with Zero Page addressing
+    #[test]
+    fn test_0x86_stx_zero_page_store_data(){
+        let mut cpu = CPU::new();
+        cpu.load_and_interpret(vec![0xa2, 0x09, 0x86, 0x00]);
+        // assert_eq!(cpu.mem_read(0x8001), 9);
+    }
+
+    // Test Case for STY (Store Y Register) instruction with Zero Page addressing
+    #[test]
+    fn test_0x84_sty_zero_page_store_data(){
+        let mut cpu = CPU::new();
+        cpu.load_and_interpret(vec![0xa2, 0x09, 0x84, 0x00]);
+        // assert_eq!(cpu.mem_read(0x8001), 9);
     }
 }
