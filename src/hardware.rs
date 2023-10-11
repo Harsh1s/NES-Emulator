@@ -302,23 +302,23 @@ mod test {
     #[test]
     fn test_0x85_sta_zero_page_store_data(){
         let mut cpu = CPU::new();
-        cpu.load_and_interpret(vec![0xa9, 0x09, 0x85, 0x00]);
-        assert_eq!(cpu.mem_read(0x8001), 9);
+        cpu.load_and_interpret(vec![0xa9, 0x09, 0x85, 0x02, 0x00]); // Load acumulator with value 9 and store it in memory at index 2
+        assert_eq!(cpu.memory[2], 9); // Check if memory is stored correctly
     }
 
     // Test Case for STX (Store X Register) instruction with Zero Page addressing
     #[test]
     fn test_0x86_stx_zero_page_store_data(){
         let mut cpu = CPU::new();
-        cpu.load_and_interpret(vec![0xa2, 0x09, 0x86, 0x00]);
-        // assert_eq!(cpu.mem_read(0x8001), 9);
+        cpu.load_and_interpret(vec![0xa2, 0x09, 0x86, 0x02, 0x00]);
+        // assert_eq!(cpu.memory[2], 9);
     }
 
     // Test Case for STY (Store Y Register) instruction with Zero Page addressing
     #[test]
     fn test_0x84_sty_zero_page_store_data(){
         let mut cpu = CPU::new();
-        cpu.load_and_interpret(vec![0xa2, 0x09, 0x84, 0x00]);
-        // assert_eq!(cpu.mem_read(0x8001), 9);
+        cpu.load_and_interpret(vec![0xa2, 0x09, 0x84, 0x02, 0x00]);
+        // assert_eq!(cpu.memory[2], 9);
     }
 }
