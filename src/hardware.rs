@@ -275,28 +275,28 @@ impl CPU {
                     self.program_counter += 1;
                 }
                 0xe0 => {
-                    self.compare(&AddressingMode::IndirectY, "X");
+                    self.compare(&AddressingMode::Immediate, "X");
                     self.program_counter += 1;
                 }
                 0xe4 => {
-                    self.compare(&AddressingMode::IndirectY, "X");
+                    self.compare(&AddressingMode::ZeroPage, "X");
                     self.program_counter += 1;
                 }
                 0xec => {
-                    self.compare(&AddressingMode::IndirectY, "X");
-                    self.program_counter += 1;
+                    self.compare(&AddressingMode::Absolute, "X");
+                    self.program_counter += 2;
                 }
                 0xc0 => {
-                    self.compare(&AddressingMode::IndirectY, "Y");
+                    self.compare(&AddressingMode::Immediate, "Y");
                     self.program_counter += 1;
                 }
                 0xc4 => {
-                    self.compare(&AddressingMode::IndirectY, "Y");
+                    self.compare(&AddressingMode::ZeroPage, "Y");
                     self.program_counter += 1;
                 }
                 0xcc => {
-                    self.compare(&AddressingMode::IndirectY, "Y");
-                    self.program_counter += 1;
+                    self.compare(&AddressingMode::Absolute, "Y");
+                    self.program_counter += 2;
                 }
                 0x00 => return, // Exit the interpreter loop
 
