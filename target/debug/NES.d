@@ -1,0 +1,1 @@
+C:\Users\Shivansh\OneDrive\Desktop\RUST\NES\NES-Emulator\target\debug\NES.exe: C:\Users\Shivansh\OneDrive\Desktop\RUST\NES\NES-Emulator\src\hardware.rs C:\Users\Shivansh\OneDrive\Desktop\RUST\NES\NES-Emulator\src\main.rs

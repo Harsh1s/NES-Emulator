@@ -144,10 +144,18 @@ impl CPU {
         let address = self.address_operand(&mode);
         let value = self.mem_read(address);
         self.accumulator = value;
+        self.update_flags_lda(self.accumulator);
     }
 
-    // Update CPU status flags
-    fn update_flags(&mut self, to_check: u8) {
+    //Implement the Compare instructions
+    fn compare(&mut self, mode: &AddressingMode, compare_from : &str) {
+        let address = self.address_operand(&mode);
+        let value = self.mem_read(address);
+        self.update_flags_compare(value, compare_from);
+    }
+
+    // Update CPU status flags for LDA
+    fn update_flags_lda(&mut self, to_check: u8) {
         if to_check == 0 {
             self.status = self.status | 0b00000010; // Set zero flag
         } else {
@@ -161,6 +169,38 @@ impl CPU {
         }
     }
 
+    //Update CPU status flags for Compare Instructions
+    fn update_flags_compare(&mut self, value:u8, compare_from : &str){
+
+        let compare_from_register: u8;
+        match compare_from {
+            "A" => {compare_from_register = self.accumulator}
+            "X" => {compare_from_register = self.index_x}
+            "Y" => {compare_from_register = self.index_y}
+            _ => {compare_from_register = self.accumulator}
+        }
+
+        if compare_from_register >= value {
+            self.status = self.status | 0b00000001; // set clear flag
+        } else {
+            self.status = self.status & 0b11111110; // clear clear flag
+        }
+
+        if compare_from_register == value {
+            self.status = self.status | 0b00000010; // Set zero flag
+        } else {
+            self.status = self.status & 0b11111101; // Clear zero flag
+        }
+
+        if (compare_from_register - value) & 0b10000000 == 0b10000000 {
+            self.status = self.status | 0b10000000; // Set negative flag
+        } else {
+            self.status = self.status & 0b01111111; // Clear negative flag
+        }
+
+    }
+
+    
     // Main interpreter loop
     pub fn interpret(&mut self) {
         self.program_counter = self.mem_read_u16(0xFFFC); // Set program counter to reset vector
@@ -174,7 +214,7 @@ impl CPU {
                     self.lda(&AddressingMode::Immediate);
                     self.program_counter += 1;
                 }
-                0xa5 => {
+                0xa5 =>  {
                     self.lda(&AddressingMode::ZeroPage);
                     self.program_counter += 1;
                 }
@@ -202,6 +242,62 @@ impl CPU {
                     self.lda(&AddressingMode::IndirectY);
                     self.program_counter += 1;
                 }
+                0xc9 => {
+                    self.compare(&AddressingMode::Immediate, "A");
+                    self.program_counter += 1;
+                }
+                0xc5 =>  {
+                    self.compare(&AddressingMode::ZeroPage, "A");
+                    self.program_counter += 1;
+                }
+                0xd5 => {
+                    self.compare(&AddressingMode::ZeroPageX, "A");
+                    self.program_counter += 1;
+                }
+                0xcd => {
+                    self.compare(&AddressingMode::Absolute, "A");
+                    self.program_counter += 2;
+                }
+                0xdd => {
+                    self.compare(&AddressingMode::AbsoluteX, "A");
+                    self.program_counter += 2;
+                }
+                0xd9 => {
+                    self.compare(&AddressingMode::AbsoluteY, "A");
+                    self.program_counter += 2;
+                }
+                0xc1 => {
+                    self.compare(&AddressingMode::IndirectX, "A");
+                    self.program_counter += 1;
+                }
+                0xd1 => {
+                    self.compare(&AddressingMode::IndirectY, "A");
+                    self.program_counter += 1;
+                }
+                0xe0 => {
+                    self.compare(&AddressingMode::Immediate, "X");
+                    self.program_counter += 1;
+                }
+                0xe4 => {
+                    self.compare(&AddressingMode::ZeroPage, "X");
+                    self.program_counter += 1;
+                }
+                0xec => {
+                    self.compare(&AddressingMode::Absolute, "X");
+                    self.program_counter += 2;
+                }
+                0xc0 => {
+                    self.compare(&AddressingMode::Immediate, "Y");
+                    self.program_counter += 1;
+                }
+                0xc4 => {
+                    self.compare(&AddressingMode::ZeroPage, "Y");
+                    self.program_counter += 1;
+                }
+                0xcc => {
+                    self.compare(&AddressingMode::Absolute, "Y");
+                    self.program_counter += 2;
+                }
                 0x00 => return, // Exit the interpreter loop
 
                 _ => todo!("write more functions for opcodes"),
@@ -223,5 +319,15 @@ mod test {
         assert_eq!(cpu.accumulator, 5); // Check if accumulator is loaded correctly
         assert!(cpu.status & 0b0000_0010 == 0b00); // Check if zero flag is not set
         assert!(cpu.status & 0b1000_0000 == 0); // Check if negative flag is not set
+    }
+    #[test]
+    fn test_0xc9_cmp_immediate_compare_data() {
+        let mut cpu = CPU::new();
+        cpu.load_and_interpret(vec![0xa9, 0x05, 0xc9, 0x05, 0x00]);
+        //cpu.load_and_interpret(vec![0xc9, 0x05, 0x00]); // Load LDA instruction with value 0x05
+        assert_eq!(cpu.accumulator, 5); // Check if accumulator is loaded correctly
+        assert!(cpu.status & 0b0000_0001 != 0b00); //check if carry flag is not set
+        assert!(cpu.status & 0b0000_0010 != 0b00); // Check if zero flag is not set
+        assert!(cpu.status & 0b1000_0000 == 0); // Check if negative flag is set
     }
 }
