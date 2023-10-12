@@ -21,7 +21,7 @@ pub enum AddressingMode {
     Immediate,
     ZeroPage,
     Absolute,
-    ZeroPageX,
+    ZeroPageX,  
     ZeroPageY,
     AbsoluteX,
     AbsoluteY,
@@ -146,6 +146,28 @@ impl CPU {
         self.accumulator = value;
     }
 
+    // Implement the SBC instruction 
+    fn sbc(&mut self, mode: &AddressingMode) {
+        let address = self.address_operand(&mode); // get the memory address of the adressing mode 
+        let data = self.mem_read(address); // Read the value from memory at the calculated address
+        let borrow = if self.status & 0b0000_0001 != 0 { 1 } else { 0 }; // Check the carry bit
+
+        // Perform the subtraction
+        let result = self.accumulator.wrapping_sub(data).wrapping_sub(1 - borrow);
+
+      
+        // Update the carry bit
+        if (self.accumulator as u16) + (1 - borrow as u16) >= data as u16 {
+        self.status |= 0b0000_0001;
+        } else {
+        self.status &= 0b1111_1110;
+        }
+
+        self.update_flags(result);
+        self.accumulator = result;
+
+    }
+
     // Update CPU status flags
     fn update_flags(&mut self, to_check: u8) {
         if to_check == 0 {
@@ -168,7 +190,7 @@ impl CPU {
         loop {
             let opcode = self.memory[self.program_counter as usize];
             self.program_counter += 1;
-
+            
             match opcode {
                 0xa9 => {
                     self.lda(&AddressingMode::Immediate);
@@ -200,6 +222,39 @@ impl CPU {
                 }
                 0xb1 => {
                     self.lda(&AddressingMode::IndirectY);
+                    self.program_counter += 1;
+                }
+                //SBC OPCODES 
+                0xe9 => {
+                    self.sbc(&AddressingMode::Immediate);
+                    self.program_counter += 1;
+                }
+                0xe5 => {
+                    self.sbc(&AddressingMode::ZeroPage);
+                    self.program_counter += 1;
+                }
+                0xf5 => {
+                    self.sbc(&AddressingMode::ZeroPageX);
+                    self.program_counter += 1;
+                }
+                0xed => {
+                    self.sbc(&AddressingMode::Absolute);
+                    self.program_counter += 2;
+                }
+                0xfd => {
+                    self.sbc(&AddressingMode::AbsoluteX);
+                    self.program_counter += 2;
+                }
+                0xf9 => {
+                    self.sbc(&AddressingMode::AbsoluteY);
+                    self.program_counter += 2;
+                }
+                0xe1 => {
+                    self.sbc(&AddressingMode::IndirectX);
+                    self.program_counter += 1;
+                }
+                0xf1 => {
+                    self.sbc(&AddressingMode::IndirectY);
                     self.program_counter += 1;
                 }
                 0x00 => return, // Exit the interpreter loop
