@@ -279,4 +279,14 @@ mod test {
         assert!(cpu.status & 0b0000_0010 == 0b00); // Check if zero flag is not set
         assert!(cpu.status & 0b1000_0000 == 0); // Check if negative flag is not set
     }
+
+    #[test]
+    fn test_0xe9_sbc_immediate_subtract_data() {
+        let mut cpu = CPU::new();
+        cpu.load_and_interpret(vec![0xe9, 0x02, 0x00]); // Load SBC instruction with  value 0x02
+        assert_eq!(cpu.accumulator, 0xfd); // Check if the accumulator contains the correct result 
+        assert!(cpu.status & 0b0000_0001 == 0); // Check if the carry flag is clear
+        assert!(cpu.status & 0b0000_0010 == 0); // Check if zero flag is clear
+        assert!(cpu.status & 0b1000_0000 == 0); // Check if negative flag is not set
+    }
 }
