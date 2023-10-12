@@ -233,15 +233,15 @@ impl CPU {
                 }
                 0x8d => {
                     self.sta(&AddressingMode::Absolute);
-                    self.program_counter += 1;
+                    self.program_counter += 2;
                 }
                 0x9d => {
                     self.sta(&AddressingMode::AbsoluteX);
-                    self.program_counter += 1;
+                    self.program_counter += 2;
                 }
                 0x99 => {
                     self.sta(&AddressingMode::AbsoluteY);
-                    self.program_counter += 1;
+                    self.program_counter += 2;
                 }
                 0x81 => {
                     self.sta(&AddressingMode::IndirectX);
@@ -261,7 +261,7 @@ impl CPU {
                 }
                 0x8e => {
                     self.stx(&AddressingMode::Absolute);
-                    self.program_counter += 1;
+                    self.program_counter += 2;
                 }
                 0x84 => {
                     self.sty(&AddressingMode::ZeroPage);
@@ -273,7 +273,7 @@ impl CPU {
                 }
                 0x8c => {
                     self.sty(&AddressingMode::Absolute);
-                    self.program_counter += 1;
+                    self.program_counter += 2;
                 }
                 0x00 => return, // Exit the interpreter loop
 
