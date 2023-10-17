@@ -30,6 +30,8 @@ pub enum AddressingMode {
     NoneAddressing,
 }
 
+
+
 impl CPU {
     // Constructor to create a new CPU instance
     pub fn new() -> Self {
@@ -146,6 +148,31 @@ impl CPU {
         self.accumulator = value;
     }
 
+    // Implement the ADC intsruction
+    fn adc(&mut self, mode : &AddressingMode) {
+        let address = self.address_operand(&mode);
+        let value = self.mem_read(address);
+
+        let raw_sum : i32 = (self.accumulator + value).into();
+
+        if  raw_sum > 255 {
+            self.status = self.status | 0b00000001; // set_carry_flag
+        }
+        else {
+            self.status = self.status & 0b11111110; // unset carry flag
+        }
+
+        if self.accumulator + value > 127 {
+            self.status = self.status | 0b01000000; //set overflow flag
+        }
+        else {
+            self.status = self.status & 0b10111111; // unset overflow flag
+        }
+        self.accumulator += value;
+        self.update_flags(self.accumulator);
+
+    }
+
     // Update CPU status flags
     fn update_flags(&mut self, to_check: u8) {
         if to_check == 0 {
@@ -200,6 +227,40 @@ impl CPU {
                 }
                 0xb1 => {
                     self.lda(&AddressingMode::IndirectY);
+                    self.program_counter += 1;
+                }
+
+                // ADC
+                0x69 => {
+                    self.adc(&AddressingMode::Immediate);
+                    self.program_counter += 1;
+                }
+                0x65 => {
+                    self.adc(&AddressingMode::ZeroPage);
+                    self.program_counter += 1;
+                }
+                0x75 => {
+                    self.adc(&AddressingMode::ZeroPageX);
+                    self.program_counter += 1;
+                }
+                0x6d => {
+                    self.adc(&AddressingMode::Absolute);
+                    self.program_counter += 2;
+                }
+                0x7d => {
+                    self.adc(&AddressingMode::AbsoluteX);
+                    self.program_counter += 2;
+                }
+                0x79 => {
+                    self.adc(&AddressingMode::AbsoluteY);
+                    self.program_counter += 2;
+                }
+                0x61 => {
+                    self.adc(&AddressingMode::IndirectX);
+                    self.program_counter += 1;
+                }
+                0x71 => {
+                    self.adc(&AddressingMode::IndirectY);
                     self.program_counter += 1;
                 }
                 0x00 => return, // Exit the interpreter loop
