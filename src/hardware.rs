@@ -162,11 +162,11 @@ impl CPU {
             self.status = self.status & 0b11111110; // unset carry flag
         }
 
-        if self.accumulator + value > 127 {
-            self.status = self.status | 0b01000000; //set overflow flag
+        if self.accumulator & 0b0100_0000 == 0b0100_0000 && value & 0b0100_0000 == 0b0100_0000 {
+            self.status = self.status | 0b0100_0000; // set overflow flag
         }
         else {
-            self.status = self.status & 0b10111111; // unset overflow flag
+            self.status = self.status & 0b1011_1111; // unset overflow flag
         }
         self.accumulator += value;
         self.update_flags(self.accumulator);
@@ -284,5 +284,12 @@ mod test {
         assert_eq!(cpu.accumulator, 5); // Check if accumulator is loaded correctly
         assert!(cpu.status & 0b0000_0010 == 0b00); // Check if zero flag is not set
         assert!(cpu.status & 0b1000_0000 == 0); // Check if negative flag is not set
+    }
+
+    fn test_0x69_adc_immediate_add_data() {
+        let mut cpu = CPU::new();
+        cpu.load_and_interpret(vec![0xa9,0x05,0x69,0x05]); //Load 0x05 in accumulator and then add 0x05
+        assert_eq!(cpu.accumulator, 10); // check if result is correct and stored appropriately
+        // TODO: design a more comprehensive test
     }
 }
