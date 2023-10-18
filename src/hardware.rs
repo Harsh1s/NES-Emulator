@@ -153,13 +153,13 @@ impl CPU {
         let address = self.address_operand(&mode);
         let value = self.mem_read(address);
 
-        let raw_sum : i32 = (self.accumulator + value).into();
+        
 
-        if  raw_sum > 255 {
-            self.status = self.status | 0b00000001; // set_carry_flag
+        if self.accumulator & 0b1000_0000 == 0b1000_0000 && value & 0b1000_0000 == 0b1000_0000 {
+            self.status = self.status | 0b1000_0000; //set carry flag
         }
         else {
-            self.status = self.status & 0b11111110; // unset carry flag
+            self.status = self.status & 0b0111_1111; //unset carry flag
         }
 
         if self.accumulator & 0b0100_0000 == 0b0100_0000 && value & 0b0100_0000 == 0b0100_0000 {
