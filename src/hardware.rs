@@ -161,6 +161,41 @@ impl CPU {
         }
     }
 
+    fn inc(&mut self, mode: &AddressingMode) -> u8 {
+        let addr = self.address_operand(&mode);
+        let mut data = self.mem_read(addr);
+        data = data.wrapping_add(1);
+        self.mem_write(addr, data);
+        self.update_flags(data);
+        data
+    }
+
+    fn inx(&mut self) {
+        self.index_x = self.index_x.wrapping_add(1);
+        self.update_flags(self.index_x);
+    }
+    fn iny(&mut self) {
+        self.index_y = self.index_y.wrapping_add(1);
+        self.update_flags(self.index_y);
+    }
+    fn dec(&mut self, mode: &AddressingMode) -> u8 {
+        let addr = self.address_operand(mode);
+        let mut data = self.mem_read(addr);
+        data = data.wrapping_sub(1);
+        self.mem_write(addr, data);
+        self.update_flags(data);
+        data
+    }
+    fn dey(&mut self) {
+        self.index_y = self.index_y.wrapping_sub(1);
+        self.update_flags(self.index_y);
+    }
+
+    fn dex(&mut self) {
+        self.index_x = self.index_x.wrapping_sub(1);
+        self.update_flags(self.index_x);
+    }
+
     // Main interpreter loop
     pub fn interpret(&mut self) {
         self.program_counter = self.mem_read_u16(0xFFFC); // Set program counter to reset vector
@@ -202,6 +237,48 @@ impl CPU {
                     self.lda(&AddressingMode::IndirectY);
                     self.program_counter += 1;
                 }
+
+                0xe6 => {
+                    self.inc(&AddressingMode::ZeroPage);
+                    self.program_counter += 1;
+                }
+                0xf6 => {
+                    self.inc(&AddressingMode::ZeroPageX);
+                    self.program_counter += 1;
+                }
+                0xee => {
+                    self.inc(&AddressingMode::Absolute);
+                    self.program_counter += 2;
+                }
+                0xfe => {
+                    self.inc(&AddressingMode::AbsoluteX);
+                    self.program_counter += 2;
+                }
+                0xe8 => {
+                    self.inx();
+                }
+                0xc8 => {
+                    self.iny();
+                }
+                0xc6 => {
+                    self.dec(&AddressingMode::ZeroPage);
+                    self.program_counter += 1;
+                }
+                0xd6 => {
+                    self.dec(&AddressingMode::ZeroPageX);
+                    self.program_counter += 1;
+                }
+                0xce => {
+                    self.dec(&AddressingMode::Absolute);
+                    self.program_counter += 2;
+                }
+                0xca => {
+                    self.dex();
+                }
+                0x88 => {
+                    self.dey();
+                }
+
                 0x00 => return, // Exit the interpreter loop
 
                 _ => todo!("write more functions for opcodes"),
