@@ -30,6 +30,8 @@ pub enum AddressingMode {
     NoneAddressing,
 }
 
+
+
 impl CPU {
     // Constructor to create a new CPU instance
     pub fn new() -> Self {
@@ -146,6 +148,31 @@ impl CPU {
         self.accumulator = value;
     }
 
+    // Implement the ADC intsruction
+    fn adc(&mut self, mode : &AddressingMode) {
+        let address = self.address_operand(&mode);
+        let value = self.mem_read(address);
+
+        
+
+        if self.accumulator & 0b1000_0000 == 0b1000_0000 && value & 0b1000_0000 == 0b1000_0000 {
+            self.status = self.status | 0b1000_0000; //set carry flag
+        }
+        else {
+            self.status = self.status & 0b0111_1111; //unset carry flag
+        }
+
+        if self.accumulator & 0b0100_0000 == 0b0100_0000 && value & 0b0100_0000 == 0b0100_0000 {
+            self.status = self.status | 0b0100_0000; // set overflow flag
+        }
+        else {
+            self.status = self.status & 0b1011_1111; // unset overflow flag
+        }
+        self.accumulator += value;
+        self.update_flags(self.accumulator);
+
+    }
+
     // Update CPU status flags
     fn update_flags(&mut self, to_check: u8) {
         if to_check == 0 {
@@ -202,6 +229,40 @@ impl CPU {
                     self.lda(&AddressingMode::IndirectY);
                     self.program_counter += 1;
                 }
+
+                // ADC
+                0x69 => {
+                    self.adc(&AddressingMode::Immediate);
+                    self.program_counter += 1;
+                }
+                0x65 => {
+                    self.adc(&AddressingMode::ZeroPage);
+                    self.program_counter += 1;
+                }
+                0x75 => {
+                    self.adc(&AddressingMode::ZeroPageX);
+                    self.program_counter += 1;
+                }
+                0x6d => {
+                    self.adc(&AddressingMode::Absolute);
+                    self.program_counter += 2;
+                }
+                0x7d => {
+                    self.adc(&AddressingMode::AbsoluteX);
+                    self.program_counter += 2;
+                }
+                0x79 => {
+                    self.adc(&AddressingMode::AbsoluteY);
+                    self.program_counter += 2;
+                }
+                0x61 => {
+                    self.adc(&AddressingMode::IndirectX);
+                    self.program_counter += 1;
+                }
+                0x71 => {
+                    self.adc(&AddressingMode::IndirectY);
+                    self.program_counter += 1;
+                }
                 0x00 => return, // Exit the interpreter loop
 
                 _ => todo!("write more functions for opcodes"),
@@ -223,5 +284,12 @@ mod test {
         assert_eq!(cpu.accumulator, 5); // Check if accumulator is loaded correctly
         assert!(cpu.status & 0b0000_0010 == 0b00); // Check if zero flag is not set
         assert!(cpu.status & 0b1000_0000 == 0); // Check if negative flag is not set
+    }
+
+    fn test_0x69_adc_immediate_add_data() {
+        let mut cpu = CPU::new();
+        cpu.load_and_interpret(vec![0xa9,0x05,0x69,0x05]); //Load 0x05 in accumulator and then add 0x05
+        assert_eq!(cpu.accumulator, 10); // check if result is correct and stored appropriately
+        // TODO: design a more comprehensive test
     }
 }
