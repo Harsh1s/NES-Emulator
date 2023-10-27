@@ -139,12 +139,7 @@ impl CPU {
         self.program_counter = self.mem_read_u16(0xFFFC); // Set program counter to reset vector
     }
 
-    // Implement the LDA instruction
-    fn lda(&mut self, mode: &AddressingMode) {
-        let address = self.address_operand(&mode);
-        let value = self.mem_read(address);
-        self.accumulator = value;
-    }
+    
     fn eor_lda(&mut self, mode: &AddressingMode) {
         let address: u16 = self.address_operand(&mode);
         let value: u8 = self.mem_read(address);
