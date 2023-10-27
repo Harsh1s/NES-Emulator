@@ -145,12 +145,16 @@ impl CPU {
         let value = self.mem_read(address);
         self.accumulator = value;
     }
-    fn eor(&mut self, mode: &AddressingMode) {
+    fn eor_lda(&mut self, mode: &AddressingMode) {
         let address: u16 = self.address_operand(&mode);
         let value: u8 = self.mem_read(address);
-        self.accumulator = value;
+        self.accumulator = value^self.accumulator;
+
+        update_flags.self.accumulator;
     
     }
+    
+
     // Update CPU status flags
     fn update_flags(&mut self, to_check: u8) {
         if to_check == 0 {
@@ -207,6 +211,7 @@ impl CPU {
                     self.lda(&AddressingMode::IndirectY);
                     self.program_counter += 1;
                 }
+                
                 0x00 => return, // Exit the interpreter loop
 
                 _ => todo!("write more functions for opcodes"),
