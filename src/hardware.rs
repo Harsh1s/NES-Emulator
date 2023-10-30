@@ -168,7 +168,7 @@ impl CPU {
         else {
             self.status = self.status & 0b1011_1111; // unset overflow flag
         }
-        self.accumulator += value;
+        self.accumulator += value + (((1 << 1)-1) & (self.status >> 0));
         self.update_flags(self.accumulator);
 
     }
