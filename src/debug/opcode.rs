@@ -17,3 +17,4 @@ pub fn decode_opcode(opcode: u8) -> OpcodeInfo {
     }
 }
 
+pub fn is_branch(opcode: u8) -> bool { matches!(opcode, 0x10 | 0x30 | 0x50 | 0x70 | 0x90 | 0xB0 | 0xD0 | 0xF0) }
